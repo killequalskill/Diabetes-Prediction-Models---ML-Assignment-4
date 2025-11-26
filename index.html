@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diabetes Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .model-selection {
+            margin-bottom: 25px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .radio-option {
+            flex: 1;
+        }
+
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+
+        .radio-option label {
+            display: block;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .predict-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .predict-btn:active {
+            transform: translateY(0);
+        }
+
+        .predict-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result-container.success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+
+        .result-container.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .result-container.success .result-title {
+            color: #155724;
+        }
+
+        .result-container.error .result-title {
+            color: #721c24;
+        }
+
+        .result-details {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .result-container.success .result-details {
+            color: #155724;
+        }
+
+        .result-container.error .result-details {
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Diabetes Prediction</h1>
+        <p class="subtitle">Enter patient details for prediction</p>
+
+        <form id="predictionForm">
+            <div class="form-group">
+                <label for="age">Age (years)</label>
+                <input type="number" id="age" name="age" required min="0" max="120" step="1">
+                <div class="input-hint">Enter age between 0-120</div>
+            </div>
+
+            <div class="form-group">
+                <label for="glucose">Blood Glucose Level (mg/dL)</label>
+                <input type="number" id="glucose" name="glucose" required min="0" max="500" step="0.1">
+                <div class="input-hint">Normal range: 70-140 mg/dL</div>
+            </div>
+
+            <div class="form-group">
+                <label for="insulin">Insulin Level (μU/mL)</label>
+                <input type="number" id="insulin" name="insulin" required min="0" max="1000" step="0.1">
+                <div class="input-hint">Normal range: 16-166 μU/mL</div>
+            </div>
+
+            <div class="form-group">
+                <label for="bmi">BMI (Body Mass Index)</label>
+                <input type="number" id="bmi" name="bmi" required min="0" max="100" step="0.1">
+                <div class="input-hint">Calculated as weight(kg)/height(m)²</div>
+            </div>
+
+            <div class="model-selection">
+                <label>Select Model</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="naive_bayes" name="model_type" value="naive_bayes" checked>
+                        <label for="naive_bayes">Naive Bayes</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="mlp" name="model_type" value="mlp">
+                        <label for="mlp">MLP</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="predict-btn" id="predictBtn">Predict Diabetes Type</button>
+        </form>
+
+        <div class="loading" id="loading">Making prediction...</div>
+
+        <div class="result-container" id="resultContainer">
+            <div class="result-title" id="resultTitle"></div>
+            <div class="result-details" id="resultDetails"></div>
+        </div>
+    </div>
+
+    <script>
+        // API endpoint - update this to match your Flask server
+        const API_URL = 'http://172.16.42.113:8000/predict';
+
+        const form = document.getElementById('predictionForm');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultDetails = document.getElementById('resultDetails');
+        const loading = document.getElementById('loading');
+        const predictBtn = document.getElementById('predictBtn');
+
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Get form values
+            const age = parseFloat(document.getElementById('age').value);
+            const glucose = parseFloat(document.getElementById('glucose').value);
+            const insulin = parseFloat(document.getElementById('insulin').value);
+            const bmi = parseFloat(document.getElementById('bmi').value);
+            const modelType = document.querySelector('input[name="model_type"]:checked').value;
+
+            // Show loading state
+            loading.style.display = 'block';
+            resultContainer.style.display = 'none';
+            predictBtn.disabled = true;
+
+            // Prepare request data
+            const requestData = {
+                age: age,
+                glucose: glucose,
+                insulin: insulin,
+                bmi: bmi,
+                model_type: modelType
+            };
+
+            console.log('Sending request:', requestData);
+
+            try {
+                // Make API call using fetch
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData),
+                    mode: 'cors'
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                // Hide loading
+                loading.style.display = 'none';
+                predictBtn.disabled = false;
+
+                if (response.ok) {
+                    // Success - display result
+                    resultContainer.className = 'result-container success';
+                    resultContainer.style.display = 'block';
+
+                    const diabetesType = data.diabetes_type === 1 ? 'Diabetic' : 'Non-Diabetic';
+                    const modelUsed = data.model_used === 'naive_bayes' ? 'Naive Bayes' : 'MLP';
+
+                    resultTitle.textContent = `Prediction: ${diabetesType}`;
+                    
+                    let details = `Model Used: ${modelUsed}<br>`;
+                    details += `Diabetes Type: ${data.diabetes_type}<br>`;
+                    
+                    if (data.confidence !== null && data.confidence !== undefined) {
+                        details += `Confidence: ${(data.confidence * 100).toFixed(2)}%`;
+                    }
+
+                    resultDetails.innerHTML = details;
+                } else {
+                    // Error from API
+                    resultContainer.className = 'result-container error';
+                    resultContainer.style.display = 'block';
+                    resultTitle.textContent = 'Prediction Failed';
+                    resultDetails.innerHTML = `Error: ${data.error || 'Unknown error occurred'}`;
+                }
+            } catch (error) {
+                // Network or other error
+                console.error('Fetch error:', error);
+                loading.style.display = 'none';
+                predictBtn.disabled = false;
+                
+                resultContainer.className = 'result-container error';
+                resultContainer.style.display = 'block';
+                resultTitle.textContent = 'Connection Error';
+                resultDetails.innerHTML = `Failed to connect to the server. Please ensure the Flask backend is running at ${API_URL}.<br><br>Error: ${error.message}<br><br>Check the browser console (F12) for more details.`;
+            }
+        });
+    </script>
+</body>
+</html>
