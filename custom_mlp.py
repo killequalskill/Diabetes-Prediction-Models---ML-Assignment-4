@@ -27,7 +27,6 @@ class CustomMLP_4_8_1:
     def fit(self, X, y):
         y = np.array(y).reshape(-1, 1)
 
-        # stabilizing output bias using prior
         prior = y.mean()
         self.b2 = np.array([[np.log(prior / (1 - prior))]])
 
